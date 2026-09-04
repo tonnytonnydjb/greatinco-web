@@ -1,0 +1,38 @@
+# macOS
+.DS_Store
+
+# Environment / secrets
+.env
+.env.*
+!.env.example
+*.pem
+*.key
+*.p12
+*.pfx
+*service-account*.json
+*credentials*.json
+
+# Node
+node_modules/
+.next/
+dist/
+build/
+coverage/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+
+# Directus / local runtime
+cms/uploads/
+cms/database/
+cms/extensions/.cache/
+
+# IDE
+.vscode/
+.idea/
+
+# Temporary / backups
+*.bak
+*.tmp
+*.log
