@@ -35,8 +35,16 @@ export type SolutionContent = {
   href: string;
 };
 
+export type ClientLogo = {
+  id: string;
+  name: string;
+  logo: CmsImage;
+  website?: string;
+};
+
 export type HomepageContent = {
   hero: HeroContent;
   metrics: MetricContent[];
   solutions: SolutionContent[];
+  clients: ClientLogo[];
 };
