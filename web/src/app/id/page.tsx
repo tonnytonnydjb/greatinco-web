@@ -1,7 +1,11 @@
-import { SiteHeader } from "@/components/layout/SiteHeader";
-import { SiteFooter } from "@/components/layout/SiteFooter";
+import { ActivityPreview } from "@/components/home/ActivityPreview";
+import { ClientMarquee } from "@/components/home/ClientMarquee";
+import { FinalCta } from "@/components/home/FinalCta";
+import { GovernanceSection } from "@/components/home/GovernanceSection";
 import { Hero } from "@/components/home/Hero";
 import { HomeSections } from "@/components/home/HomeSections";
+import { SiteFooter } from "@/components/layout/SiteFooter";
+import { SiteHeader } from "@/components/layout/SiteHeader";
 import { getHomepageContent } from "@/services/cms";
 
 export default async function IndonesianHomepage() {
@@ -12,8 +16,25 @@ export default async function IndonesianHomepage() {
       <SiteHeader locale="id" />
 
       <main>
-        <Hero content={content.hero} />
-        <HomeSections locale="id" />
+        <Hero content={content.hero} locale="id" />
+
+        <ClientMarquee clients={content.clients} locale="id" />
+
+        <HomeSections
+          locale="id"
+          capabilities={content.capabilities}
+          solutionsSection={content.solutionsSection}
+          solutions={content.solutions}
+        />
+
+        <GovernanceSection
+          governance={content.governance}
+          certifications={content.certifications}
+        />
+
+        <ActivityPreview locale="id" />
+
+        <FinalCta locale="id" />
       </main>
 
       <SiteFooter locale="id" />

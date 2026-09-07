@@ -7,7 +7,11 @@ type Props = {
 };
 
 export function ClientMarquee({ clients, locale }: Props) {
-  const repeatedClients = [...clients, ...clients];
+  if (clients.length === 0) {
+    return null;
+  }
+
+  const marqueeClients = [...clients, ...clients];
 
   return (
     <section className="client-marquee-section">
@@ -19,21 +23,19 @@ export function ClientMarquee({ clients, locale }: Props) {
         </span>
       </div>
 
-      <div className="client-marquee-viewport">
+      <div className="client-marquee">
         <div className="client-marquee-track">
-          {repeatedClients.map((client, index) => (
-            <div
-              key={`${client.id}-${index}`}
-              className="client-logo-item"
-              aria-hidden={index >= clients.length}
-            >
-              <Image
-                src={client.logo.src}
-                alt={index >= clients.length ? "" : client.logo.alt}
-                width={180}
-                height={72}
-                sizes="180px"
-              />
+          {marqueeClients.map((client, index) => (
+            <div className="client-marquee-item" key={`${client.name}-${index}`}>
+              <div className="client-marquee-logo-box">
+                <Image
+                  src={client.image.src}
+                  alt={client.image.alt}
+                  fill
+                  sizes="180px"
+                  className="client-marquee-logo"
+                />
+              </div>
             </div>
           ))}
         </div>

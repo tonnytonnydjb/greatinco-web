@@ -36,3 +36,4 @@ cms/extensions/.cache/
 *.bak
 *.tmp
 *.log
+.env.local
