@@ -3,7 +3,6 @@
 import Image from "next/image";
 import Link from "next/link";
 import { useState } from "react";
-import { usePathname } from "next/navigation";
 
 import type { NavigationItem, SiteLocale, SiteSettingsContent } from "@/types/cms";
 
@@ -30,27 +29,6 @@ export function SiteHeader({ locale, navigation, settings }: Props) {
   const [mobileSection, setMobileSection] = useState<number | null>(null);
 
   const alternateLocale = locale === "id" ? "en" : "id";
-  const pathname = usePathname();
-
-  const localeSwitchHref = (() => {
-    if (!pathname || pathname === "/") {
-      return `/${alternateLocale}`;
-    }
-
-    if (pathname === "/id" || pathname === "/en") {
-      return `/${alternateLocale}`;
-    }
-
-    if (pathname.startsWith("/id/")) {
-      return `/en${pathname.slice(3)}`;
-    }
-
-    if (pathname.startsWith("/en/")) {
-      return `/id${pathname.slice(3)}`;
-    }
-
-    return `/${alternateLocale}${pathname}`;
-  })();
 
   return (
     <header className="site-header">
@@ -105,7 +83,7 @@ export function SiteHeader({ locale, navigation, settings }: Props) {
         </nav>
 
         <div className="header-actions">
-          <Link className="language" href={localeSwitchHref}>
+          <Link className="language" href={`/${alternateLocale}`}>
             {alternateLocale.toUpperCase()}
           </Link>
 
@@ -179,7 +157,7 @@ export function SiteHeader({ locale, navigation, settings }: Props) {
             })}
 
             <Link
-              href={localeSwitchHref}
+              href={`/${alternateLocale}`}
               className="mobile-language"
               onClick={() => setMobileOpen(false)}
             >
