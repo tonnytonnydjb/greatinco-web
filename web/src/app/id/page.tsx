@@ -6,14 +6,17 @@ import { Hero } from "@/components/home/Hero";
 import { HomeSections } from "@/components/home/HomeSections";
 import { SiteFooter } from "@/components/layout/SiteFooter";
 import { SiteHeader } from "@/components/layout/SiteHeader";
-import { getHomepageContent } from "@/services/cms";
+import { getHomepageContent, getSiteChromeContent } from "@/services/cms";
 
 export default async function IndonesianHomepage() {
-  const content = await getHomepageContent("id");
+  const [content, chrome] = await Promise.all([
+    getHomepageContent("id"),
+    getSiteChromeContent("id"),
+  ]);
 
   return (
     <>
-      <SiteHeader locale="id" />
+      <SiteHeader locale="id" navigation={chrome.headerNavigation} settings={chrome.settings} />
 
       <main>
         <Hero content={content.hero} locale="id" />
@@ -41,7 +44,7 @@ export default async function IndonesianHomepage() {
         <FinalCta locale="id" content={content.finalCta} />
       </main>
 
-      <SiteFooter locale="id" />
+      <SiteFooter locale="id" navigation={chrome.footerNavigation} settings={chrome.settings} />
     </>
   );
 }

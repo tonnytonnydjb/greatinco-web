@@ -9,10 +9,12 @@ import type {
   HeroContent,
   HomepageContent,
   HomepageSectionContent,
+  NavigationItem,
+  SiteChromeContent,
+  SiteLocale,
+  SiteSettingsContent,
   SolutionContent,
 } from "@/types/cms";
-
-type Locale = "id" | "en";
 
 type DirectusHomepageTranslation = {
   id: number;
@@ -122,21 +124,76 @@ type DirectusActivity = {
   translations: DirectusActivityTranslation[];
 };
 
-const languageIdByLocale: Record<Locale, number> = {
+type DirectusNavigationTranslation = {
+  id: number;
+  languages_id: number;
+  label: string | null;
+};
+
+type DirectusNavigationParent =
+  | number
+  | {
+      id: number;
+    }
+  | null;
+
+type DirectusNavigation = {
+  id: number;
+  location: string;
+  url: string | null;
+  parent: DirectusNavigationParent;
+  open_in_new_tab: boolean | null;
+  is_external: boolean | null;
+  status: string;
+  sort: number | null;
+  translations: DirectusNavigationTranslation[];
+};
+
+type DirectusSiteSettingsTranslation = {
+  id: number;
+  languages_id: number;
+  footer_description?: string | null;
+};
+
+type DirectusSiteSettings = {
+  id: number;
+
+  site_name?: string | null;
+  legal_name?: string | null;
+
+  logo_light?: string | null;
+
+  contact_email?: string | null;
+  phone?: string | null;
+  whatsapp_number?: string | null;
+
+  office_address?: string | null;
+  office_maps_url?: string | null;
+
+  instagram_url?: string | null;
+  linkedin_url?: string | null;
+  youtube_url?: string | null;
+  tiktok_url?: string | null;
+
+  translations?: DirectusSiteSettingsTranslation[];
+};
+
+const languageIdByLocale: Record<SiteLocale, number> = {
   id: 1,
   en: 2,
 };
 
-function localizedPath(locale: Locale, path: string | null): string | undefined {
+function localizedPath(locale: SiteLocale, path: string | null | undefined): string {
   if (!path) {
-    return undefined;
+    return `/${locale}`;
   }
 
   if (
     path.startsWith("http://") ||
     path.startsWith("https://") ||
     path.startsWith("mailto:") ||
-    path.startsWith("tel:")
+    path.startsWith("tel:") ||
+    path.startsWith("#")
   ) {
     return path;
   }
@@ -157,11 +214,11 @@ function localizedPath(locale: Locale, path: string | null): string | undefined 
 
 function requireHomepageTranslation(
   homepage: DirectusHomepage,
-  locale: Locale,
+  locale: SiteLocale,
 ): DirectusHomepageTranslation {
-  const languageId = languageIdByLocale[locale];
-
-  const translation = homepage.translations.find((item) => item.languages_id === languageId);
+  const translation = homepage.translations.find(
+    (item) => item.languages_id === languageIdByLocale[locale],
+  );
 
   if (!translation) {
     throw new Error(`Homepage translation tidak ditemukan untuk locale ${locale}`);
@@ -170,7 +227,7 @@ function requireHomepageTranslation(
   return translation;
 }
 
-function mapHero(locale: Locale, translation: DirectusHomepageTranslation): HeroContent {
+function mapHero(locale: SiteLocale, translation: DirectusHomepageTranslation): HeroContent {
   return {
     eyebrow: translation.hero_eyebrow ?? "",
     title: translation.hero_title ?? "",
@@ -179,14 +236,14 @@ function mapHero(locale: Locale, translation: DirectusHomepageTranslation): Hero
     primaryCta: translation.hero_primary_cta_label
       ? {
           label: translation.hero_primary_cta_label,
-          href: localizedPath(locale, translation.hero_primary_cta_url) ?? `/${locale}/solutions`,
+          href: localizedPath(locale, translation.hero_primary_cta_url ?? "/solutions"),
         }
       : undefined,
 
     secondaryCta: translation.hero_secondary_cta_label
       ? {
           label: translation.hero_secondary_cta_label,
-          href: localizedPath(locale, translation.hero_secondary_cta_url) ?? `/${locale}/contact`,
+          href: localizedPath(locale, translation.hero_secondary_cta_url ?? "/contact"),
         }
       : undefined,
   };
@@ -214,7 +271,7 @@ function mapClient(client: DirectusClient): ClientLogo {
   };
 }
 
-function mapSolution(locale: Locale, solution: DirectusSolution): SolutionContent | null {
+function mapSolution(locale: SiteLocale, solution: DirectusSolution): SolutionContent | null {
   const translation = solution.translations.find(
     (item) => item.languages_id === languageIdByLocale[locale],
   );
@@ -233,7 +290,7 @@ function mapSolution(locale: Locale, solution: DirectusSolution): SolutionConten
 }
 
 function mapCertification(
-  locale: Locale,
+  locale: SiteLocale,
   certification: DirectusCertification,
 ): CertificationContent {
   const translation = certification.translations.find(
@@ -252,7 +309,7 @@ function mapCertification(
   };
 }
 
-function mapActivity(locale: Locale, activity: DirectusActivity): ActivityContent | null {
+function mapActivity(locale: SiteLocale, activity: DirectusActivity): ActivityContent | null {
   const translation = activity.translations.find(
     (item) => item.languages_id === languageIdByLocale[locale],
   );
@@ -276,7 +333,145 @@ function mapActivity(locale: Locale, activity: DirectusActivity): ActivityConten
   };
 }
 
-export async function getHomepageContent(locale: Locale): Promise<HomepageContent> {
+function getParentId(parent: DirectusNavigationParent): number | null {
+  if (parent === null) {
+    return null;
+  }
+
+  if (typeof parent === "number") {
+    return parent;
+  }
+
+  return parent.id;
+}
+
+function mapNavigation(locale: SiteLocale, items: DirectusNavigation[]): NavigationItem[] {
+  const languageId = languageIdByLocale[locale];
+
+  const mapped = new Map<
+    number,
+    NavigationItem & {
+      parentId: number | null;
+      sort: number;
+    }
+  >();
+
+  for (const item of items) {
+    const translation = item.translations.find((entry) => entry.languages_id === languageId);
+
+    if (!translation?.label) {
+      continue;
+    }
+
+    mapped.set(item.id, {
+      id: item.id,
+      label: translation.label,
+      href: localizedPath(locale, item.url),
+      isExternal: Boolean(item.is_external),
+      openInNewTab: Boolean(item.open_in_new_tab),
+      children: [],
+      parentId: getParentId(item.parent),
+      sort: item.sort ?? 999,
+    });
+  }
+
+  const roots: Array<
+    NavigationItem & {
+      parentId: number | null;
+      sort: number;
+    }
+  > = [];
+
+  for (const item of mapped.values()) {
+    if (item.parentId !== null && mapped.has(item.parentId)) {
+      mapped.get(item.parentId)?.children.push(item);
+    } else {
+      roots.push(item);
+    }
+  }
+
+  function sortTree(itemsToSort: NavigationItem[]) {
+    itemsToSort.sort((a, b) => {
+      const aInternal = mapped.get(a.id);
+      const bInternal = mapped.get(b.id);
+
+      return (aInternal?.sort ?? 999) - (bInternal?.sort ?? 999);
+    });
+
+    for (const item of itemsToSort) {
+      sortTree(item.children);
+    }
+  }
+
+  sortTree(roots);
+
+  return roots.map(({ parentId: _parentId, sort: _sort, ...item }) => item);
+}
+
+function mapSiteSettings(locale: SiteLocale, settings: DirectusSiteSettings): SiteSettingsContent {
+  const translation = settings.translations?.find(
+    (item) => item.languages_id === languageIdByLocale[locale],
+  );
+
+  return {
+    siteName: settings.site_name ?? "Greatinco",
+
+    legalName: settings.legal_name ?? "PT Greatinco Capital Indonesia",
+
+    footerDescription:
+      translation?.footer_description ??
+      (locale === "id"
+        ? "Solusi manajemen kredit, penagihan, pemulihan, dan pengelolaan portofolio bagi institusi keuangan."
+        : "Credit management, collection, recovery and portfolio solutions for financial institutions."),
+
+    logoLight: {
+      src: directusAssetUrl(settings.logo_light) ?? "/brand/greatinco-logo-white.png",
+      alt: settings.site_name ?? "Greatinco",
+    },
+
+    contactEmail: settings.contact_email ?? undefined,
+
+    phone: settings.phone ?? undefined,
+
+    whatsapp: settings.whatsapp_number ?? undefined,
+
+    officeAddress: settings.office_address ?? undefined,
+
+    officeMapsUrl: settings.office_maps_url ?? undefined,
+
+    instagramUrl: settings.instagram_url ?? undefined,
+
+    youtubeUrl: settings.youtube_url ?? undefined,
+
+    tiktokUrl: settings.tiktok_url ?? undefined,
+  };
+}
+
+export async function getSiteChromeContent(locale: SiteLocale): Promise<SiteChromeContent> {
+  const [navigation, settings] = await Promise.all([
+    directusFetch<DirectusNavigation[]>(
+      "/items/navigation?fields=id,location,url,parent,open_in_new_tab,is_external,status,sort,translations.*&filter[status][_eq]=published&sort=sort&limit=-1",
+    ),
+
+    directusFetch<DirectusSiteSettings>("/items/site_settings?fields=*,translations.*"),
+  ]);
+
+  return {
+    headerNavigation: mapNavigation(
+      locale,
+      navigation.filter((item) => item.location === "header"),
+    ),
+
+    footerNavigation: mapNavigation(
+      locale,
+      navigation.filter((item) => item.location === "footer"),
+    ),
+
+    settings: mapSiteSettings(locale, settings),
+  };
+}
+
+export async function getHomepageContent(locale: SiteLocale): Promise<HomepageContent> {
   const [homepage, clients, solutions, certifications, activities] = await Promise.all([
     directusFetch<DirectusHomepage>("/items/homepage?fields=*,translations.*"),
 
@@ -349,7 +544,7 @@ export async function getHomepageContent(locale: Locale): Promise<HomepageConten
       title: translation.cta_title ?? "",
       description: translation.cta_description ?? "",
       buttonLabel: translation.cta_button_label ?? "",
-      buttonHref: localizedPath(locale, translation.cta_button_url) ?? `/${locale}/contact`,
+      buttonHref: localizedPath(locale, translation.cta_button_url ?? "/contact"),
     },
 
     metrics: [],

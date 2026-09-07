@@ -1,3 +1,5 @@
+export type SiteLocale = "id" | "en";
+
 export type CmsImage = {
   src: string;
   alt: string;
@@ -57,6 +59,36 @@ export type ActivityContent = {
   activityDate: string;
   href: string;
   image: CmsImage;
+};
+
+export type NavigationItem = {
+  id: number;
+  label: string;
+  href: string;
+  isExternal: boolean;
+  openInNewTab: boolean;
+  children: NavigationItem[];
+};
+
+export type SiteSettingsContent = {
+  siteName: string;
+  legalName: string;
+  footerDescription: string;
+  logoLight?: CmsImage;
+  contactEmail?: string;
+  phone?: string;
+  whatsapp?: string;
+  officeAddress?: string;
+  officeMapsUrl?: string;
+  instagramUrl?: string;
+  youtubeUrl?: string;
+  tiktokUrl?: string;
+};
+
+export type SiteChromeContent = {
+  headerNavigation: NavigationItem[];
+  footerNavigation: NavigationItem[];
+  settings: SiteSettingsContent;
 };
 
 export type HomepageContent = {

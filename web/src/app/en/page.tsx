@@ -6,14 +6,17 @@ import { Hero } from "@/components/home/Hero";
 import { HomeSections } from "@/components/home/HomeSections";
 import { SiteFooter } from "@/components/layout/SiteFooter";
 import { SiteHeader } from "@/components/layout/SiteHeader";
-import { getHomepageContent } from "@/services/cms";
+import { getHomepageContent, getSiteChromeContent } from "@/services/cms";
 
 export default async function EnglishHomepage() {
-  const content = await getHomepageContent("en");
+  const [content, chrome] = await Promise.all([
+    getHomepageContent("en"),
+    getSiteChromeContent("en"),
+  ]);
 
   return (
     <>
-      <SiteHeader locale="en" />
+      <SiteHeader locale="en" navigation={chrome.headerNavigation} settings={chrome.settings} />
 
       <main>
         <Hero content={content.hero} locale="en" />
@@ -41,7 +44,7 @@ export default async function EnglishHomepage() {
         <FinalCta locale="en" content={content.finalCta} />
       </main>
 
-      <SiteFooter locale="en" />
+      <SiteFooter locale="en" navigation={chrome.footerNavigation} settings={chrome.settings} />
     </>
   );
 }
