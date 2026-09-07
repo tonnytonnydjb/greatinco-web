@@ -1,7 +1,6 @@
 import "server-only";
 
-import { directusAssetUrl, directusFetch } from "@/lib/directus";
-
+import { directusFetch } from "@/lib/directus";
 import type {
   ActivityContent,
   CertificationContent,
@@ -127,6 +126,32 @@ const languageIdByLocale: Record<Locale, number> = {
   en: 2,
 };
 
+const localClientLogoFallback: Record<string, string> = {
+  Akulaku: "/clients/Akulaku.png",
+  "Amar Bank": "/clients/AmarBank.png",
+  "BFI Finance": "/clients/BFI.png",
+  "Bank Neo Commerce": "/clients/BNC.png",
+  Generali: "/clients/Generali.png",
+  Manulife: "/clients/Manulife.png",
+  SPayLater: "/clients/SPayLater.png",
+  Traveloka: "/clients/traveloka.png",
+  JULO: "/clients/julo.png",
+  Indodana: "/clients/indodana.png",
+};
+
+const localCertificationFallback: Record<string, string> = {
+  AFPI: "/certifications/afpi.png",
+  "ISO 27001": "/certifications/iso-27001.png",
+  "ISO 9001": "/certifications/iso-9001.png",
+  LSPPI: "/certifications/lsppi.png",
+};
+
+const localActivityFallback: Record<string, string> = {
+  "greatinco-head-office-gathering-2026": "/activities/bukber-ho-2026-1.jpeg",
+  "greatinco-malang-team-gathering-2026": "/activities/bukber-malang-2026.jpeg",
+  "training-refreshment-2026": "/activities/training-refreshment.jpg",
+};
+
 function localizedPath(locale: Locale, path: string | null): string | undefined {
   if (!path) {
     return undefined;
@@ -208,7 +233,7 @@ function mapClient(client: DirectusClient): ClientLogo {
   return {
     name: client.name,
     image: {
-      src: directusAssetUrl(client.logo) ?? "/brand/greatinco-logogram.png",
+      src: localClientLogoFallback[client.name] ?? "/brand/greatinco-logogram.png",
       alt: client.name,
     },
   };
@@ -245,7 +270,7 @@ function mapCertification(
     name: certification.name,
     description: translation?.description ?? "",
     image: {
-      src: directusAssetUrl(certification.logo) ?? "/brand/greatinco-logogram.png",
+      src: localCertificationFallback[certification.name] ?? "/brand/greatinco-logogram.png",
       alt: certification.name,
     },
     website: certification.website ?? undefined,
@@ -270,7 +295,7 @@ function mapActivity(locale: Locale, activity: DirectusActivity): ActivityConten
     activityDate: activity.activity_date,
     href: `/${locale}/activities/${activity.slug}`,
     image: {
-      src: directusAssetUrl(activity.cover_image) ?? "/brand/greatinco-logogram.png",
+      src: localActivityFallback[activity.slug] ?? "/brand/greatinco-logogram.png",
       alt: translation.title,
     },
   };

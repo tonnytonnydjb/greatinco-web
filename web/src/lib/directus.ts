@@ -29,7 +29,15 @@ export async function directusFetch<T>(path: string, options?: RequestInit): Pro
   });
 
   if (!response.ok) {
-    throw new Error(`Directus request failed: ${response.status} ${response.statusText}`);
+    const body = await response.text();
+
+    throw new Error(
+      [
+        `Directus request failed: ${response.status} ${response.statusText}`,
+        `Path: ${path}`,
+        `Response: ${body}`,
+      ].join("\n"),
+    );
   }
 
   const payload = (await response.json()) as DirectusResponse<T>;
@@ -37,6 +45,10 @@ export async function directusFetch<T>(path: string, options?: RequestInit): Pro
   return payload.data;
 }
 
-export function directusAssetUrl(fileId: string): string {
-  return `${DIRECTUS_URL}/assets/${fileId}`;
+export function directusAssetUrl(fileId: string | null | undefined): string | undefined {
+  if (!fileId) {
+    return undefined;
+  }
+
+  return `/api/cms/assets/${encodeURIComponent(fileId)}`;
 }

@@ -32,9 +32,13 @@ export default async function EnglishHomepage() {
           certifications={content.certifications}
         />
 
-        <ActivityPreview locale="en" />
+        <ActivityPreview
+          locale="en"
+          section={content.activitiesSection}
+          activities={content.activities}
+        />
 
-        <FinalCta locale="en" />
+        <FinalCta locale="en" content={content.finalCta} />
       </main>
 
       <SiteFooter locale="en" />

@@ -32,9 +32,13 @@ export default async function IndonesianHomepage() {
           certifications={content.certifications}
         />
 
-        <ActivityPreview locale="id" />
+        <ActivityPreview
+          locale="id"
+          section={content.activitiesSection}
+          activities={content.activities}
+        />
 
-        <FinalCta locale="id" />
+        <FinalCta locale="id" content={content.finalCta} />
       </main>
 
       <SiteFooter locale="id" />

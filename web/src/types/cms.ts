@@ -48,6 +48,17 @@ export type CertificationContent = {
   website?: string;
 };
 
+export type ActivityContent = {
+  id: number;
+  slug: string;
+  title: string;
+  category: string;
+  summary: string;
+  activityDate: string;
+  href: string;
+  image: CmsImage;
+};
+
 export type HomepageContent = {
   hero: HeroContent;
 
@@ -61,7 +72,8 @@ export type HomepageContent = {
   governance: HomepageSectionContent;
   certifications: CertificationContent[];
 
-  activities: HomepageSectionContent;
+  activitiesSection: HomepageSectionContent;
+  activities: ActivityContent[];
 
   finalCta: {
     eyebrow: string;
