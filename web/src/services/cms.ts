@@ -405,7 +405,14 @@ function mapNavigation(locale: SiteLocale, items: DirectusNavigation[]): Navigat
 
   sortTree(roots);
 
-  return roots.map(({ parentId: _parentId, sort: _sort, ...item }) => item);
+  return roots.map((item) => ({
+    id: item.id,
+    label: item.label,
+    href: item.href,
+    isExternal: item.isExternal,
+    openInNewTab: item.openInNewTab,
+    children: item.children,
+  }));
 }
 
 function mapSiteSettings(locale: SiteLocale, settings: DirectusSiteSettings): SiteSettingsContent {

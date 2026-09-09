@@ -1,7 +1,9 @@
 import Link from "next/link";
 
-import type { SiteLocale } from "@/types/cms";
+import { CareerApplicationForm } from "@/components/careers/CareerApplicationForm";
+
 import type { VacancyDetail } from "@/services/careers";
+import type { SiteLocale } from "@/types/cms";
 
 type Props = {
   locale: SiteLocale;
@@ -50,6 +52,7 @@ export function CareerDetailPage({ locale, vacancy }: Props) {
           <aside className="career-detail-aside">
             <div>
               <span>{isId ? "POSISI" : "POSITION"}</span>
+
               <strong>{vacancy.title}</strong>
             </div>
 
@@ -61,7 +64,7 @@ export function CareerDetailPage({ locale, vacancy }: Props) {
               </div>
             )}
 
-            <Link href={`/${locale}/careers/${vacancy.slug}#apply`} className="career-apply-button">
+            <Link href="#apply" className="career-apply-button">
               {isId ? "Lamar Posisi Ini" : "Apply for This Role"}
             </Link>
           </aside>
@@ -101,17 +104,11 @@ export function CareerDetailPage({ locale, vacancy }: Props) {
               </section>
             )}
 
-            <section id="apply" className="career-application-placeholder">
-              <span>{isId ? "LAMAR POSISI" : "APPLY NOW"}</span>
-
-              <h2>{isId ? "Siap bergabung dengan Greatinco?" : "Ready to join Greatinco?"}</h2>
-
-              <p>
-                {isId
-                  ? "Form lamaran online dan upload CV aman akan tersedia pada tahap berikutnya."
-                  : "The secure online application and CV upload form will be enabled in the next step."}
-              </p>
-            </section>
+            <CareerApplicationForm
+              locale={locale}
+              vacancySlug={vacancy.slug}
+              vacancyTitle={vacancy.title}
+            />
           </div>
         </div>
       </section>
