@@ -1,4 +1,6 @@
 import type { Metadata } from "next";
+import Script from "next/script";
+
 import "./globals.css";
 
 export const metadata: Metadata = {
@@ -23,6 +25,7 @@ export const metadata: Metadata = {
         type: "image/png",
       },
     ],
+
     apple: [
       {
         url: "/favicon/apple-touch-icon.png",
@@ -43,9 +46,22 @@ export default function RootLayout({
 }: Readonly<{
   children: React.ReactNode;
 }>) {
+  const siteKey = process.env.NEXT_PUBLIC_RECAPTCHA_SITE_KEY;
+
   return (
     <html lang="id">
-      <body>{children}</body>
+      <body>
+        {children}
+
+        {siteKey ? (
+          <Script
+            src={`https://www.google.com/recaptcha/enterprise.js?render=${encodeURIComponent(
+              siteKey,
+            )}`}
+            strategy="afterInteractive"
+          />
+        ) : null}
+      </body>
     </html>
   );
 }

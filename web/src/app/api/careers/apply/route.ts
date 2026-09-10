@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 
 import { sendCareerApplicationNotification } from "@/services/m365-mail";
+import { verifyRecaptcha } from "@/services/recaptcha";
 
 export const runtime = "nodejs";
 
@@ -230,6 +231,23 @@ export async function POST(request: Request) {
       return NextResponse.json({
         ok: true,
       });
+    }
+
+    const recaptchaToken = cleanText(formData.get("recaptchaToken"), 4096);
+
+    const recaptcha = await verifyRecaptcha({
+      token: recaptchaToken,
+      expectedAction: "career_apply",
+      userAgent: request.headers.get("user-agent") ?? undefined,
+    });
+
+    if (!recaptcha.ok) {
+      console.warn("Career reCAPTCHA rejected", {
+        reason: recaptcha.reason,
+        score: recaptcha.score,
+      });
+
+      return jsonError("Unable to verify request.", 403);
     }
 
     const locale = cleanText(formData.get("locale"), 2) === "en" ? "en" : "id";

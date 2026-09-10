@@ -2,6 +2,7 @@
 
 import { FormEvent, useState } from "react";
 
+import { getRecaptchaToken } from "@/lib/recaptcha-client";
 import type { SiteLocale } from "@/types/cms";
 
 type Props = {
@@ -14,9 +15,7 @@ export function CareerApplicationForm({ locale, vacancySlug, vacancyTitle }: Pro
   const isId = locale === "id";
 
   const [submitting, setSubmitting] = useState(false);
-
   const [success, setSuccess] = useState(false);
-
   const [message, setMessage] = useState("");
 
   async function handleSubmit(event: FormEvent<HTMLFormElement>) {
@@ -30,16 +29,17 @@ export function CareerApplicationForm({ locale, vacancySlug, vacancyTitle }: Pro
     setMessage("");
 
     const form = event.currentTarget;
-
     const formData = new FormData(form);
 
     formData.set("locale", locale);
-
     formData.set("vacancySlug", vacancySlug);
-
     formData.set("consent", formData.get("consent") ? "true" : "false");
 
     try {
+      const recaptchaToken = await getRecaptchaToken("career_apply");
+
+      formData.set("recaptchaToken", recaptchaToken);
+
       const response = await fetch("/api/careers/apply", {
         method: "POST",
         body: formData,
@@ -97,7 +97,6 @@ export function CareerApplicationForm({ locale, vacancySlug, vacancyTitle }: Pro
       {success ? (
         <div className="career-form-success" role="status">
           <strong>{isId ? "Lamaran diterima." : "Application received."}</strong>
-
           <p>{message}</p>
         </div>
       ) : (
@@ -116,25 +115,21 @@ export function CareerApplicationForm({ locale, vacancySlug, vacancyTitle }: Pro
           <div className="career-form-grid">
             <label>
               <span>{isId ? "Nama Lengkap" : "Full Name"}*</span>
-
               <input name="fullName" type="text" required maxLength={150} autoComplete="name" />
             </label>
 
             <label>
               <span>Email *</span>
-
               <input name="email" type="email" required maxLength={254} autoComplete="email" />
             </label>
 
             <label>
               <span>{isId ? "Nomor Telepon" : "Phone Number"}*</span>
-
               <input name="phone" type="tel" required maxLength={40} autoComplete="tel" />
             </label>
 
             <label>
               <span>LinkedIn</span>
-
               <input
                 name="linkedinUrl"
                 type="url"
@@ -145,7 +140,6 @@ export function CareerApplicationForm({ locale, vacancySlug, vacancyTitle }: Pro
 
             <label>
               <span>{isId ? "Perusahaan Saat Ini" : "Current Company"}</span>
-
               <input
                 name="currentCompany"
                 type="text"
@@ -156,14 +150,12 @@ export function CareerApplicationForm({ locale, vacancySlug, vacancyTitle }: Pro
 
             <label>
               <span>{isId ? "Posisi Saat Ini" : "Current Position"}</span>
-
               <input name="currentPosition" type="text" maxLength={150} />
             </label>
           </div>
 
           <label className="career-form-full">
             <span>{isId ? "Pesan / Cover Letter" : "Message / Cover Letter"}</span>
-
             <textarea name="coverLetter" rows={7} maxLength={5000} />
           </label>
 
