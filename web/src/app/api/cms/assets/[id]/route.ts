@@ -1,140 +1,38 @@
+import { Storage } from "@google-cloud/storage";
 import { NextRequest, NextResponse } from "next/server";
 
 export const runtime = "nodejs";
 
 const UUID_PATTERN = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
 
-const WEBSITE_PUBLIC_ROOT_FOLDER_ID = "9306d020-b152-4453-8f22-5082daa1ec2b";
+const PUBLIC_BUCKET =
+  process.env.DIRECTUS_PUBLIC_ASSETS_BUCKET ?? "website-greatinco-directus-assets";
 
-type DirectusFile = {
-  id: string;
-  folder:
-    | string
-    | {
-        id?: string | null;
-      }
-    | null;
-  type?: string | null;
-};
+const storage = new Storage();
 
-type DirectusFolder = {
-  id: string;
-  parent:
-    | string
-    | {
-        id?: string | null;
-      }
-    | null;
-};
-
-type DirectusItemResponse<T> = {
-  data: T;
-};
-
-function extractId(
-  value:
-    | string
-    | {
-        id?: string | null;
-      }
-    | null,
-): string | null {
-  if (!value) {
-    return null;
-  }
-
-  if (typeof value === "string") {
-    return value;
-  }
-
-  return value.id ?? null;
-}
-
-function safeInteger(value: string | null, min: number, max: number): number | null {
-  if (!value) {
-    return null;
-  }
-
-  const parsed = Number.parseInt(value, 10);
-
-  if (!Number.isFinite(parsed) || parsed < min || parsed > max) {
-    return null;
-  }
-
-  return parsed;
-}
-
-async function directusMetadataFetch<T>(
-  directusUrl: string,
-  token: string,
-  path: string,
-): Promise<T | null> {
-  const response = await fetch(`${directusUrl}${path}`, {
-    headers: {
-      Authorization: `Bearer ${token}`,
-    },
-    cache: "no-store",
-  });
-
-  if (!response.ok) {
-    return null;
-  }
-
-  const payload = (await response.json()) as DirectusItemResponse<T>;
-
-  return payload.data ?? null;
-}
-
-async function isInsideWebsitePublic(
-  directusUrl: string,
-  token: string,
-  folderId: string | null,
-): Promise<boolean> {
-  if (!folderId) {
-    return false;
-  }
-
-  let currentFolderId: string | null = folderId;
-
-  const visited = new Set<string>();
-
+function isOriginalObject(id: string, objectName: string): boolean {
   /*
-   * Safety cap prevents malformed folder
-   * structures from causing infinite loops.
+   * Directus originals use:
+   *   <uuid>.<extension>
+   *
+   * Generated transformations use:
+   *   <uuid>__<hash>.<extension>
+   *
+   * Only originals are eligible.
    */
-  for (let depth = 0; depth < 20; depth += 1) {
-    if (!currentFolderId) {
-      return false;
-    }
+  return (
+    objectName.startsWith(`${id}.`) &&
+    !objectName.startsWith(`${id}__`) &&
+    !objectName.includes("/")
+  );
+}
 
-    if (currentFolderId === WEBSITE_PUBLIC_ROOT_FOLDER_ID) {
-      return true;
-    }
-
-    if (visited.has(currentFolderId)) {
-      return false;
-    }
-
-    visited.add(currentFolderId);
-
-    const folder = await directusMetadataFetch<DirectusFolder>(
-      directusUrl,
-      token,
-      `/folders/${encodeURIComponent(currentFolderId)}?fields=id,parent`,
-    );
-
-    if (!folder) {
-      return false;
-    }
-
-    currentFolderId = extractId(folder.parent);
-  }
-
-  return false;
+function safeDownloadName(objectName: string): string {
+  return objectName.replace(/[\r\n"]/g, "").slice(0, 255);
 }
 
 export async function GET(
-  request: NextRequest,
+  _request: NextRequest,
   context: {
     params: Promise<{
       id: string;
@@ -154,12 +52,55 @@ export async function GET(
     );
   }
 
-  const directusUrl = process.env.DIRECTUS_URL;
+  try {
+    const bucket = storage.bucket(PUBLIC_BUCKET);
 
-  const token = process.env.DIRECTUS_TOKEN;
+    /*
+     * We intentionally do not query Directus
+     * metadata here.
+     *
+     * The web runtime can only read the
+     * public-assets bucket. It has no IAM
+     * access to the career-private bucket.
+     */
+    const [files] = await bucket.getFiles({
+      prefix: id,
+      maxResults: 20,
+      autoPaginate: false,
+    });
 
-  if (!directusUrl || !token) {
-    console.error("CMS asset proxy configuration missing");
+    const original = files.find((file) => isOriginalObject(id, file.name));
+
+    if (!original) {
+      return NextResponse.json(
+        {
+          error: "Asset not found",
+        },
+        {
+          status: 404,
+        },
+      );
+    }
+
+    const [metadata] = await original.getMetadata();
+
+    const [body] = await original.download();
+
+    const contentType = metadata.contentType ?? "application/octet-stream";
+
+    const filename = safeDownloadName(original.name);
+
+    return new NextResponse(new Uint8Array(body), {
+      status: 200,
+      headers: {
+        "Content-Type": contentType,
+        "Content-Disposition": `inline; filename="${filename}"`,
+        "Cache-Control": "public, max-age=300, s-maxage=3600, stale-while-revalidate=86400",
+        "X-Content-Type-Options": "nosniff",
+      },
+    });
+  } catch (error) {
+    console.error("Public asset retrieval failed", error);
 
     return NextResponse.json(
       {
@@ -170,99 +111,4 @@ export async function GET(
       },
     );
   }
-
-  const file = await directusMetadataFetch<DirectusFile>(
-    directusUrl,
-    token,
-    `/files/${encodeURIComponent(id)}?fields=id,folder,type`,
-  );
-
-  if (!file) {
-    return NextResponse.json(
-      {
-        error: "Asset not found",
-      },
-      {
-        status: 404,
-      },
-    );
-  }
-
-  const folderId = extractId(file.folder);
-
-  const allowed = await isInsideWebsitePublic(directusUrl, token, folderId);
-
-  if (!allowed) {
-    /*
-     * Fail closed:
-     * anything outside website-public
-     * is treated as non-existent.
-     */
-    return NextResponse.json(
-      {
-        error: "Asset not found",
-      },
-      {
-        status: 404,
-      },
-    );
-  }
-
-  const assetUrl = new URL(`${directusUrl}/assets/${encodeURIComponent(id)}`);
-
-  const width = safeInteger(request.nextUrl.searchParams.get("width"), 1, 4000);
-
-  const height = safeInteger(request.nextUrl.searchParams.get("height"), 1, 4000);
-
-  const quality = safeInteger(request.nextUrl.searchParams.get("quality"), 1, 100);
-
-  const fit = request.nextUrl.searchParams.get("fit");
-
-  if (width !== null) {
-    assetUrl.searchParams.set("width", String(width));
-  }
-
-  if (height !== null) {
-    assetUrl.searchParams.set("height", String(height));
-  }
-
-  if (quality !== null) {
-    assetUrl.searchParams.set("quality", String(quality));
-  }
-
-  if (fit && ["cover", "contain", "inside", "outside"].includes(fit)) {
-    assetUrl.searchParams.set("fit", fit);
-  }
-
-  const assetResponse = await fetch(assetUrl, {
-    headers: {
-      Authorization: `Bearer ${token}`,
-    },
-    cache: "no-store",
-  });
-
-  if (!assetResponse.ok) {
-    return NextResponse.json(
-      {
-        error: "Asset not found",
-      },
-      {
-        status: 404,
-      },
-    );
-  }
-
-  const body = await assetResponse.arrayBuffer();
-
-  return new NextResponse(body, {
-    status: 200,
-    headers: {
-      "Content-Type":
-        assetResponse.headers.get("content-type") ?? file.type ?? "application/octet-stream",
-
-      "Cache-Control": "public, max-age=300, s-maxage=3600, stale-while-revalidate=86400",
-
-      "X-Content-Type-Options": "nosniff",
-    },
-  });
 }

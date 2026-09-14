@@ -199,6 +199,8 @@ async function uploadCv(file: File, safeFilename: string) {
 
   upload.append("folder", folderId);
 
+  upload.append("storage", "career_private");
+
   upload.append("title", safeFilename);
 
   upload.append("file", file, safeFilename);
