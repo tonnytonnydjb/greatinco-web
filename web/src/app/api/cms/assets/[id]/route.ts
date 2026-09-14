@@ -11,15 +11,6 @@ const PUBLIC_BUCKET =
 const storage = new Storage();
 
 function isOriginalObject(id: string, objectName: string): boolean {
-  /*
-   * Directus originals use:
-   *   <uuid>.<extension>
-   *
-   * Generated transformations use:
-   *   <uuid>__<hash>.<extension>
-   *
-   * Only originals are eligible.
-   */
   return (
     objectName.startsWith(`${id}.`) &&
     !objectName.startsWith(`${id}__`) &&
@@ -31,38 +22,62 @@ function safeDownloadName(objectName: string): string {
   return objectName.replace(/[\r\n"]/g, "").slice(0, 255);
 }
 
-export async function GET(
-  _request: NextRequest,
-  context: {
-    params: Promise<{
-      id: string;
-    }>;
-  },
-) {
-  const { id } = await context.params;
+function isLocalDirectus(): boolean {
+  const url = process.env.DIRECTUS_URL ?? "";
 
-  if (!UUID_PATTERN.test(id)) {
+  return (
+    url.includes("127.0.0.1") || url.includes("localhost") || url.includes("host.docker.internal")
+  );
+}
+
+async function getLocalDirectusAsset(id: string): Promise<NextResponse> {
+  const directusUrl = process.env.DIRECTUS_URL;
+  const token = process.env.DIRECTUS_TOKEN;
+
+  if (!directusUrl || !token) {
     return NextResponse.json(
-      {
-        error: "Invalid asset id",
-      },
-      {
-        status: 400,
-      },
+      { error: "Local Directus asset configuration unavailable" },
+      { status: 503 },
     );
   }
 
+  const response = await fetch(
+    `${directusUrl.replace(/\/$/, "")}/assets/${encodeURIComponent(id)}`,
+    {
+      headers: {
+        Authorization: `Bearer ${token}`,
+        Accept: "*/*",
+      },
+      cache: "no-store",
+    },
+  );
+
+  if (response.status === 404) {
+    return NextResponse.json({ error: "Asset not found" }, { status: 404 });
+  }
+
+  if (!response.ok) {
+    console.error("Local Directus asset retrieval failed", response.status, response.statusText);
+
+    return NextResponse.json({ error: "Asset service unavailable" }, { status: 503 });
+  }
+
+  const body = await response.arrayBuffer();
+
+  return new NextResponse(body, {
+    status: 200,
+    headers: {
+      "Content-Type": response.headers.get("content-type") ?? "application/octet-stream",
+      "Cache-Control": "private, max-age=60",
+      "X-Content-Type-Options": "nosniff",
+    },
+  });
+}
+
+async function getProductionAsset(id: string): Promise<NextResponse> {
   try {
     const bucket = storage.bucket(PUBLIC_BUCKET);
 
-    /*
-     * We intentionally do not query Directus
-     * metadata here.
-     *
-     * The web runtime can only read the
-     * public-assets bucket. It has no IAM
-     * access to the career-private bucket.
-     */
     const [files] = await bucket.getFiles({
       prefix: id,
       maxResults: 20,
@@ -72,18 +87,10 @@ export async function GET(
     const original = files.find((file) => isOriginalObject(id, file.name));
 
     if (!original) {
-      return NextResponse.json(
-        {
-          error: "Asset not found",
-        },
-        {
-          status: 404,
-        },
-      );
+      return NextResponse.json({ error: "Asset not found" }, { status: 404 });
     }
 
     const [metadata] = await original.getMetadata();
-
     const [body] = await original.download();
 
     const contentType = metadata.contentType ?? "application/octet-stream";
@@ -102,13 +109,27 @@ export async function GET(
   } catch (error) {
     console.error("Public asset retrieval failed", error);
 
-    return NextResponse.json(
-      {
-        error: "Asset service unavailable",
-      },
-      {
-        status: 503,
-      },
-    );
+    return NextResponse.json({ error: "Asset service unavailable" }, { status: 503 });
   }
+}
+
+export async function GET(
+  _request: NextRequest,
+  context: {
+    params: Promise<{
+      id: string;
+    }>;
+  },
+) {
+  const { id } = await context.params;
+
+  if (!UUID_PATTERN.test(id)) {
+    return NextResponse.json({ error: "Invalid asset id" }, { status: 400 });
+  }
+
+  if (isLocalDirectus()) {
+    return getLocalDirectusAsset(id);
+  }
+
+  return getProductionAsset(id);
 }

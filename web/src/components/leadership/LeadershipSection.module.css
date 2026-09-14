@@ -1,0 +1,169 @@
+.section {
+  padding: 64px 0 72px;
+  background: #f3f5f8;
+}
+
+.shell {
+  width: min(1180px, calc(100% - 56px));
+  margin: 0 auto;
+}
+
+.heading {
+  max-width: 820px;
+  margin-bottom: 38px;
+}
+
+.heading > span {
+  display: block;
+  margin-bottom: 13px;
+  color: #667085;
+  text-transform: uppercase;
+  letter-spacing: 0.14em;
+  font-size: 10px;
+  font-weight: 700;
+}
+
+.heading h2 {
+  margin: 0;
+  max-width: 780px;
+  color: #172033;
+  font-size: clamp(30px, 3vw, 42px);
+  font-weight: 450;
+  letter-spacing: -0.038em;
+  line-height: 1.08;
+}
+
+.grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 42px;
+}
+
+.profile {
+  min-width: 0;
+}
+
+.photo {
+  position: relative;
+  overflow: hidden;
+  aspect-ratio: 4 / 4.35;
+  background: #dfe4ea;
+}
+
+.image {
+  object-fit: cover;
+  object-position: center top;
+  filter: saturate(0.92) contrast(1.02);
+  transition: transform 400ms ease;
+}
+
+.profile:hover .image {
+  transform: scale(1.018);
+}
+
+.photoFallback {
+  display: grid;
+  width: 100%;
+  height: 100%;
+  place-items: center;
+  color: #667085;
+  font-size: 72px;
+  font-weight: 400;
+}
+
+.index {
+  position: absolute;
+  right: 18px;
+  bottom: 16px;
+  display: grid;
+  width: 38px;
+  height: 38px;
+  place-items: center;
+  background: rgba(7, 17, 31, 0.92);
+  color: rgba(255, 255, 255, 0.76);
+  font-size: 10px;
+  font-weight: 700;
+}
+
+.profileBody {
+  display: grid;
+  grid-template-columns: minmax(160px, 0.6fr) minmax(0, 1.4fr);
+  gap: 28px;
+  padding-top: 22px;
+}
+
+.identity h3 {
+  margin: 0 0 6px;
+  color: #172033;
+  font-size: 21px;
+  font-weight: 600;
+  letter-spacing: -0.02em;
+}
+
+.identity p {
+  margin: 0;
+  color: #667085;
+  font-size: 13px;
+  line-height: 1.5;
+}
+
+.biography {
+  border-left: 1px solid #d5dbe3;
+  padding-left: 24px;
+}
+
+.biography p {
+  margin: 0 0 12px;
+  color: #667085;
+  font-size: 13px;
+  line-height: 1.68;
+}
+
+.biography p:last-child {
+  margin-bottom: 0;
+}
+
+@media (max-width: 900px) {
+  .shell {
+    width: min(100% - 36px, 1180px);
+  }
+
+  .grid {
+    gap: 26px;
+  }
+
+  .profileBody {
+    grid-template-columns: 1fr;
+    gap: 16px;
+  }
+
+  .biography {
+    border-left: 0;
+    border-top: 1px solid #d5dbe3;
+    padding-top: 16px;
+    padding-left: 0;
+  }
+}
+
+@media (max-width: 680px) {
+  .section {
+    padding: 52px 0 58px;
+  }
+
+  .shell {
+    width: min(100% - 28px, 1180px);
+  }
+
+  .heading {
+    margin-bottom: 28px;
+  }
+
+  .grid {
+    grid-template-columns: 1fr;
+    gap: 42px;
+  }
+
+  .photo {
+    aspect-ratio: 4 / 4.5;
+  }
+}
