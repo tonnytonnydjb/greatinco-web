@@ -229,11 +229,7 @@ export function CareerApplicationForm({ locale, vacancySlug, vacancyTitle }: Pro
             <div className="career-form-v2-submit">
               <span>{isId ? "SIAP MENGIRIM?" : "READY TO APPLY?"}</span>
 
-              <button
-                type="submit"
-                disabled={submitting}
-                className="career-submit-button-v2"
-              >
+              <button type="submit" disabled={submitting} className="career-submit-button-v2">
                 <span>
                   {submitting
                     ? isId
