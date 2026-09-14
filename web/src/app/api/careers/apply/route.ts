@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 
 import { sendCareerApplicationNotification } from "@/services/m365-mail";
 import { verifyRecaptcha } from "@/services/recaptcha";
+import { directusRequest as directusHttpRequest } from "@/lib/directus-http";
 
 export const runtime = "nodejs";
 
@@ -129,20 +130,14 @@ function validateFileSignature(extension: string, bytes: Uint8Array) {
 }
 
 async function directusRequest<T>(path: string, options: RequestInit = {}): Promise<T> {
-  const baseUrl = process.env.DIRECTUS_URL;
-
   const token = process.env.DIRECTUS_CAREERS_TOKEN;
 
-  if (!baseUrl || !token) {
+  if (!token) {
     throw new Error("Career service configuration is incomplete.");
   }
 
-  const response = await fetch(`${baseUrl}${path}`, {
+  const response = await directusHttpRequest(path, token, {
     ...options,
-    headers: {
-      Authorization: `Bearer ${token}`,
-      ...(options.headers ?? {}),
-    },
     cache: "no-store",
   });
 

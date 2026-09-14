@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 
+import { directusRequest as directusHttpRequest } from "@/lib/directus-http";
 import { sendContactNotification } from "@/services/contact-mail";
 import { verifyRecaptcha } from "@/services/recaptcha";
 
@@ -41,18 +42,15 @@ function jsonError(message: string, status: number) {
 }
 
 async function directusCreate(payload: Record<string, unknown>) {
-  const url = process.env.DIRECTUS_URL;
-
   const token = process.env.DIRECTUS_CONTACT_TOKEN;
 
-  if (!url || !token) {
+  if (!token) {
     throw new Error("Contact service configuration incomplete.");
   }
 
-  const response = await fetch(`${url}/items/contact_inquiries`, {
+  const response = await directusHttpRequest("/items/contact_inquiries", token, {
     method: "POST",
     headers: {
-      Authorization: `Bearer ${token}`,
       "Content-Type": "application/json",
     },
     body: JSON.stringify(payload),
