@@ -7,6 +7,8 @@ import { SiteHeader } from "@/components/layout/SiteHeader";
 import { getVacancies } from "@/services/careers";
 import { getSiteChromeContent } from "@/services/cms";
 
+export const dynamic = "force-dynamic";
+
 export const metadata: Metadata = {
   title: "Careers | Greatinco",
   description:

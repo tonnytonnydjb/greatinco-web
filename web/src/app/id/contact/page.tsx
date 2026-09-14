@@ -5,6 +5,8 @@ import { SiteFooter } from "@/components/layout/SiteFooter";
 import { SiteHeader } from "@/components/layout/SiteHeader";
 import { getSiteChromeContent } from "@/services/cms";
 
+export const dynamic = "force-dynamic";
+
 export const metadata: Metadata = {
   title: "Kontak | Greatinco",
   description:

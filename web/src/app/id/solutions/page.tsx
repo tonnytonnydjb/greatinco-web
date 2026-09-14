@@ -8,6 +8,8 @@ import { getSiteChromeContent } from "@/services/cms";
 
 import { getAllSolutions } from "@/services/solutions";
 
+export const dynamic = "force-dynamic";
+
 export const metadata: Metadata = {
   title: "Solusi Manajemen Kredit | Greatinco",
   description:

@@ -8,6 +8,8 @@ import { SiteFooter } from "@/components/layout/SiteFooter";
 import { SiteHeader } from "@/components/layout/SiteHeader";
 import { getHomepageContent, getSiteChromeContent } from "@/services/cms";
 
+export const dynamic = "force-dynamic";
+
 export default async function IndonesianHomepage() {
   const [content, chrome] = await Promise.all([
     getHomepageContent("id"),
