@@ -1,26 +1,26 @@
 import "server-only";
 
-const DIRECTUS_URL = process.env.DIRECTUS_URL;
-const DIRECTUS_TOKEN = process.env.DIRECTUS_TOKEN;
-
-if (!DIRECTUS_URL) {
-  throw new Error("DIRECTUS_URL is not configured");
-}
-
-if (!DIRECTUS_TOKEN) {
-  throw new Error("DIRECTUS_TOKEN is not configured");
-}
+import { directusRequest } from "@/lib/directus-http";
 
 type DirectusResponse<T> = {
   data: T;
 };
 
+function getDirectusToken(): string {
+  const token = process.env.DIRECTUS_TOKEN;
+
+  if (!token) {
+    throw new Error("DIRECTUS_TOKEN is not configured");
+  }
+
+  return token;
+}
+
 export async function directusFetch<T>(path: string, options?: RequestInit): Promise<T> {
-  const response = await fetch(`${DIRECTUS_URL}${path}`, {
+  const response = await directusRequest(path, getDirectusToken(), {
     ...options,
     headers: {
       Accept: "application/json",
-      Authorization: `Bearer ${DIRECTUS_TOKEN}`,
       ...options?.headers,
     },
     next: {
