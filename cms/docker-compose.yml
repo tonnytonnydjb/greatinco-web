@@ -1,0 +1,70 @@
+services:
+  database:
+    image: postgres:17-alpine
+    container_name: greatinco-cms-db
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: ${POSTGRES_DB}
+      POSTGRES_USER: ${POSTGRES_USER}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+    volumes:
+      - greatinco_cms_db:/var/lib/postgresql/data
+    networks:
+      - cms_internal
+    healthcheck:
+      test:
+        [
+          "CMD-SHELL",
+          "pg_isready -U ${POSTGRES_USER} -d ${POSTGRES_DB}"
+        ]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    security_opt:
+      - no-new-privileges:true
+
+  directus:
+    image: directus/directus:${DIRECTUS_VERSION}
+    container_name: greatinco-cms
+    restart: unless-stopped
+    depends_on:
+      database:
+        condition: service_healthy
+    ports:
+      - "127.0.0.1:8055:8055"
+    environment:
+      SECRET: ${DIRECTUS_SECRET}
+
+      ADMIN_EMAIL: ${ADMIN_EMAIL}
+      ADMIN_PASSWORD: ${ADMIN_PASSWORD}
+
+      DB_CLIENT: pg
+      DB_HOST: database
+      DB_PORT: 5432
+      DB_DATABASE: ${POSTGRES_DB}
+      DB_USER: ${POSTGRES_USER}
+      DB_PASSWORD: ${POSTGRES_PASSWORD}
+
+      PUBLIC_URL: ${PUBLIC_URL}
+
+      TELEMETRY: "false"
+
+      CORS_ENABLED: "true"
+      CORS_ORIGIN: "http://localhost:3000"
+
+      WEBSOCKETS_ENABLED: "false"
+
+    volumes:
+      - ./uploads:/directus/uploads
+      - ./extensions:/directus/extensions
+    networks:
+      - cms_internal
+    security_opt:
+      - no-new-privileges:true
+
+networks:
+  cms_internal:
+    driver: bridge
+
+volumes:
+  greatinco_cms_db:

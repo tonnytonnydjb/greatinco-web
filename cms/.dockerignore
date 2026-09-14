@@ -1,0 +1,10 @@
+.env
+.env.*
+uploads
+backups
+node_modules
+.git
+.gitignore
+docker-compose.yml
+*.log
+.DS_Store
