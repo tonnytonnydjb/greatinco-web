@@ -81,27 +81,33 @@ export function CareerApplicationForm({ locale, vacancySlug, vacancyTitle }: Pro
   }
 
   return (
-    <section id="apply" className="career-application">
-      <div className="career-application-heading">
-        <span>{isId ? "LAMAR POSISI" : "APPLY NOW"}</span>
+    <section id="apply" className="career-application-v2">
+      <header className="career-application-v2-heading">
+        <div>
+          <span>{isId ? "LAMAR POSISI" : "APPLY FOR THIS ROLE"}</span>
 
-        <h2>{isId ? "Tertarik bergabung?" : "Interested in joining us?"}</h2>
+          <h2>{isId ? "Mulai proses aplikasi Anda." : "Start your application."}</h2>
+        </div>
 
         <p>
           {isId
-            ? `Kirim lamaran Anda untuk posisi ${vacancyTitle}.`
-            : `Submit your application for ${vacancyTitle}.`}
+            ? `Kirim profil Anda untuk posisi ${vacancyTitle}. Tim kami akan melakukan review terhadap setiap aplikasi yang masuk.`
+            : `Submit your profile for ${vacancyTitle}. Our team will review each application received.`}
         </p>
-      </div>
+      </header>
 
       {success ? (
-        <div className="career-form-success" role="status">
-          <strong>{isId ? "Lamaran diterima." : "Application received."}</strong>
-          <p>{message}</p>
+        <div className="career-form-success-v2" role="status">
+          <span aria-hidden="true">✓</span>
+
+          <div>
+            <strong>{isId ? "Lamaran diterima." : "Application received."}</strong>
+            <p>{message}</p>
+          </div>
         </div>
       ) : (
         <form
-          className="career-application-form"
+          className="career-application-form-v2"
           onSubmit={handleSubmit}
           encType="multipart/form-data"
         >
@@ -112,91 +118,136 @@ export function CareerApplicationForm({ locale, vacancySlug, vacancyTitle }: Pro
             </label>
           </div>
 
-          <div className="career-form-grid">
-            <label>
-              <span>{isId ? "Nama Lengkap" : "Full Name"}*</span>
-              <input name="fullName" type="text" required maxLength={150} autoComplete="name" />
-            </label>
+          <div className="career-form-v2-section">
+            <div className="career-form-v2-section-heading">
+              <span>01</span>
+              <strong>{isId ? "Informasi pribadi" : "Personal information"}</strong>
+            </div>
 
-            <label>
-              <span>Email *</span>
-              <input name="email" type="email" required maxLength={254} autoComplete="email" />
-            </label>
+            <div className="career-form-v2-grid">
+              <label>
+                <span>{isId ? "Nama Lengkap" : "Full Name"} *</span>
+                <input name="fullName" type="text" required maxLength={150} autoComplete="name" />
+              </label>
 
-            <label>
-              <span>{isId ? "Nomor Telepon" : "Phone Number"}*</span>
-              <input name="phone" type="tel" required maxLength={40} autoComplete="tel" />
-            </label>
+              <label>
+                <span>Email *</span>
+                <input name="email" type="email" required maxLength={254} autoComplete="email" />
+              </label>
 
-            <label>
-              <span>LinkedIn</span>
-              <input
-                name="linkedinUrl"
-                type="url"
-                maxLength={500}
-                placeholder="https://linkedin.com/in/..."
-              />
-            </label>
+              <label>
+                <span>{isId ? "Nomor Telepon" : "Phone Number"} *</span>
+                <input name="phone" type="tel" required maxLength={40} autoComplete="tel" />
+              </label>
 
-            <label>
-              <span>{isId ? "Perusahaan Saat Ini" : "Current Company"}</span>
-              <input
-                name="currentCompany"
-                type="text"
-                maxLength={150}
-                autoComplete="organization"
-              />
-            </label>
+              <label>
+                <span>LinkedIn</span>
+                <input
+                  name="linkedinUrl"
+                  type="url"
+                  maxLength={500}
+                  placeholder="https://linkedin.com/in/..."
+                />
+              </label>
+            </div>
+          </div>
 
-            <label>
-              <span>{isId ? "Posisi Saat Ini" : "Current Position"}</span>
-              <input name="currentPosition" type="text" maxLength={150} />
+          <div className="career-form-v2-section">
+            <div className="career-form-v2-section-heading">
+              <span>02</span>
+              <strong>{isId ? "Pengalaman profesional" : "Professional background"}</strong>
+            </div>
+
+            <div className="career-form-v2-grid">
+              <label>
+                <span>{isId ? "Perusahaan Saat Ini" : "Current Company"}</span>
+                <input
+                  name="currentCompany"
+                  type="text"
+                  maxLength={150}
+                  autoComplete="organization"
+                />
+              </label>
+
+              <label>
+                <span>{isId ? "Posisi Saat Ini" : "Current Position"}</span>
+                <input name="currentPosition" type="text" maxLength={150} />
+              </label>
+            </div>
+
+            <label className="career-form-v2-full">
+              <span>{isId ? "Pesan / Cover Letter" : "Message / Cover Letter"}</span>
+              <textarea name="coverLetter" rows={7} maxLength={5000} />
             </label>
           </div>
 
-          <label className="career-form-full">
-            <span>{isId ? "Pesan / Cover Letter" : "Message / Cover Letter"}</span>
-            <textarea name="coverLetter" rows={7} maxLength={5000} />
-          </label>
+          <div className="career-form-v2-section">
+            <div className="career-form-v2-section-heading">
+              <span>03</span>
+              <strong>{isId ? "Dokumen" : "Documents"}</strong>
+            </div>
 
-          <label className="career-file-field">
-            <span>CV / Resume *</span>
+            <label className="career-file-field-v2">
+              <span>CV / Resume *</span>
 
-            <input
-              name="cv"
-              type="file"
-              required
-              accept=".pdf,.doc,.docx,application/pdf,application/msword,application/vnd.openxmlformats-officedocument.wordprocessingml.document"
-            />
+              <input
+                name="cv"
+                type="file"
+                required
+                accept=".pdf,.doc,.docx,application/pdf,application/msword,application/vnd.openxmlformats-officedocument.wordprocessingml.document"
+              />
 
-            <small>PDF, DOC, DOCX · Max 5 MB</small>
-          </label>
+              <small>PDF, DOC, DOCX · Max 5 MB</small>
+            </label>
+          </div>
 
-          <label className="career-consent">
-            <input name="consent" type="checkbox" required />
+          <div className="career-form-v2-footer">
+            <div className="career-form-v2-legal">
+              <label className="career-consent-v2">
+                <input name="consent" type="checkbox" required />
 
-            <span>
-              {isId
-                ? "Saya menyetujui Greatinco memproses data pribadi yang saya kirimkan untuk tujuan proses rekrutmen."
-                : "I consent to Greatinco processing the personal information I submit for recruitment purposes."}
-            </span>
-          </label>
+                <span>
+                  {isId
+                    ? "Saya menyetujui Greatinco memproses data pribadi yang saya kirimkan untuk tujuan proses rekrutmen."
+                    : "I consent to Greatinco processing the personal information I submit for recruitment purposes."}
+                </span>
+              </label>
 
-          {message && (
-            <p className="career-form-error" role="alert">
-              {message}
-            </p>
-          )}
+              <p className="career-form-v2-privacy-note">
+                {isId
+                  ? "Data yang dikirimkan hanya digunakan untuk proses evaluasi dan rekrutmen Greatinco."
+                  : "Information submitted will only be used for Greatinco recruitment and evaluation purposes."}
+              </p>
 
-          <button type="submit" disabled={submitting} className="career-submit-button">
-            {submitting
-              ? isId
-                ? "Mengirim..."
-                : "Submitting..."
-              : isId
-                ? "Kirim Lamaran"
-                : "Submit Application"}
-          </button>
+              {message && (
+                <p className="career-form-error" role="alert">
+                  {message}
+                </p>
+              )}
+            </div>
+
+            <div className="career-form-v2-submit">
+              <span>{isId ? "SIAP MENGIRIM?" : "READY TO APPLY?"}</span>
+
+              <button
+                type="submit"
+                disabled={submitting}
+                className="career-submit-button-v2"
+              >
+                <span>
+                  {submitting
+                    ? isId
+                      ? "Mengirim..."
+                      : "Submitting..."
+                    : isId
+                      ? "Kirim Lamaran"
+                      : "Submit Application"}
+                </span>
+
+                <strong aria-hidden="true">↗</strong>
+              </button>
+            </div>
+          </div>
         </form>
       )}
     </section>

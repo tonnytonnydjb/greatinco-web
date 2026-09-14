@@ -199,7 +199,13 @@ async function uploadCv(file: File, safeFilename: string) {
 
   upload.append("folder", folderId);
 
-  upload.append("storage", "career_private");
+  const storageLocation = process.env.DIRECTUS_CAREER_STORAGE;
+
+  if (!storageLocation) {
+    throw new Error("Career storage location is not configured.");
+  }
+
+  upload.append("storage", storageLocation);
 
   upload.append("title", safeFilename);
 
