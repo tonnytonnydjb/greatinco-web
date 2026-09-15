@@ -7,6 +7,7 @@ import { directusRequest as directusHttpRequest } from "@/lib/directus-http";
 export const runtime = "nodejs";
 
 const MAX_CV_SIZE = 5 * 1024 * 1024;
+const MAX_CAREER_REQUEST_SIZE = 6 * 1024 * 1024;
 
 const ALLOWED_EXTENSIONS = new Set(["pdf", "doc", "docx"]);
 
@@ -41,14 +42,12 @@ type CareerApplication = {
 };
 
 function jsonError(message: string, status: number) {
-  return NextResponse.json(
+  return noStoreJson(
     {
       ok: false,
       message,
     },
-    {
-      status,
-    },
+    status,
   );
 }
 
@@ -64,7 +63,50 @@ function cleanText(value: FormDataEntryValue | null, maxLength: number) {
 }
 
 function normalizePhone(value: string) {
-  return value.replace(/[^\d+]/g, "");
+  const normalized = value.replace(/[\s().-]/g, "");
+  return /^\+?\d{8,15}$/.test(normalized) ? normalized : "";
+}
+
+function requestTooLarge(request: Request, maxBytes: number) {
+  const value = request.headers.get("content-length");
+
+  if (!value) {
+    return false;
+  }
+
+  const length = Number(value);
+
+  return Number.isFinite(length) && length > maxBytes;
+}
+
+function isValidLinkedInUrl(value: string) {
+  if (!value) {
+    return true;
+  }
+
+  try {
+    const url = new URL(value);
+
+    return (
+      url.protocol === "https:" &&
+      (url.hostname === "linkedin.com" ||
+        url.hostname === "www.linkedin.com")
+    );
+  } catch {
+    return false;
+  }
+}
+
+function noStoreJson(
+  body: Record<string, unknown>,
+  status = 200,
+) {
+  return NextResponse.json(body, {
+    status,
+    headers: {
+      "Cache-Control": "no-store",
+    },
+  });
 }
 
 function isValidEmail(value: string) {
@@ -216,6 +258,10 @@ async function uploadCv(file: File, safeFilename: string) {
 
 export async function POST(request: Request) {
   try {
+    if (requestTooLarge(request, MAX_CAREER_REQUEST_SIZE)) {
+      return jsonError("Request payload is too large.", 413);
+    }
+
     const contentType = request.headers.get("content-type") ?? "";
 
     if (!contentType.includes("multipart/form-data")) {
@@ -231,7 +277,7 @@ export async function POST(request: Request) {
     const website = cleanText(formData.get("website"), 200);
 
     if (website) {
-      return NextResponse.json({
+      return noStoreJson({
         ok: true,
       });
     }
@@ -261,7 +307,8 @@ export async function POST(request: Request) {
 
     const email = cleanText(formData.get("email"), 254).toLowerCase();
 
-    const phone = normalizePhone(cleanText(formData.get("phone"), 40));
+    const rawPhone = cleanText(formData.get("phone"), 40);
+    const phone = normalizePhone(rawPhone);
 
     const linkedinUrl = cleanText(formData.get("linkedinUrl"), 500);
 
@@ -293,9 +340,18 @@ export async function POST(request: Request) {
       );
     }
 
-    if (phone.length < 8 || phone.length > 20) {
+    if (!phone) {
       return jsonError(
         locale === "id" ? "Nomor telepon tidak valid." : "Invalid phone number.",
+        400,
+      );
+    }
+
+    if (!isValidLinkedInUrl(linkedinUrl)) {
+      return jsonError(
+        locale === "id"
+          ? "URL LinkedIn tidak valid."
+          : "Invalid LinkedIn URL.",
         400,
       );
     }

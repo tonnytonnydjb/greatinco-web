@@ -6,6 +6,8 @@ import { verifyRecaptcha } from "@/services/recaptcha";
 
 export const runtime = "nodejs";
 
+const MAX_CONTACT_REQUEST_SIZE = 128 * 1024;
+
 type DirectusResponse<T> = {
   data: T;
 };
@@ -22,7 +24,32 @@ function cleanText(value: FormDataEntryValue | null, maxLength: number) {
 }
 
 function normalizePhone(value: string) {
-  return value.replace(/[^\d+]/g, "");
+  const normalized = value.replace(/[\s().-]/g, "");
+  return /^\+?\d{8,15}$/.test(normalized) ? normalized : "";
+}
+
+function requestTooLarge(request: Request, maxBytes: number) {
+  const value = request.headers.get("content-length");
+
+  if (!value) {
+    return false;
+  }
+
+  const length = Number(value);
+
+  return Number.isFinite(length) && length > maxBytes;
+}
+
+function noStoreJson(
+  body: Record<string, unknown>,
+  status = 200,
+) {
+  return NextResponse.json(body, {
+    status,
+    headers: {
+      "Cache-Control": "no-store",
+    },
+  });
 }
 
 function isValidEmail(value: string) {
@@ -30,14 +57,12 @@ function isValidEmail(value: string) {
 }
 
 function jsonError(message: string, status: number) {
-  return NextResponse.json(
+  return noStoreJson(
     {
       ok: false,
       message,
     },
-    {
-      status,
-    },
+    status,
   );
 }
 
@@ -62,7 +87,6 @@ async function directusCreate(payload: Record<string, unknown>) {
   if (!response.ok) {
     console.error("Contact Directus create failed", {
       status: response.status,
-      body: text.slice(0, 500),
     });
 
     throw new Error(`Directus create failed: ${response.status}`);
@@ -81,6 +105,10 @@ async function directusCreate(payload: Record<string, unknown>) {
 
 export async function POST(request: Request) {
   try {
+    if (requestTooLarge(request, MAX_CONTACT_REQUEST_SIZE)) {
+      return jsonError("Request payload is too large.", 413);
+    }
+
     const contentType = request.headers.get("content-type") ?? "";
 
     if (!contentType.includes("multipart/form-data")) {
@@ -92,7 +120,7 @@ export async function POST(request: Request) {
     const website = cleanText(form.get("website"), 200);
 
     if (website) {
-      return NextResponse.json({
+      return noStoreJson({
         ok: true,
       });
     }
@@ -120,7 +148,8 @@ export async function POST(request: Request) {
 
     const email = cleanText(form.get("email"), 254).toLowerCase();
 
-    const phone = normalizePhone(cleanText(form.get("phone"), 40));
+    const rawPhone = cleanText(form.get("phone"), 40);
+    const phone = rawPhone ? normalizePhone(rawPhone) : "";
 
     const company = cleanText(form.get("company"), 180);
 
@@ -144,7 +173,7 @@ export async function POST(request: Request) {
       );
     }
 
-    if (phone && (phone.length < 8 || phone.length > 20)) {
+    if (rawPhone && !phone) {
       return jsonError(
         locale === "id" ? "Nomor telepon tidak valid." : "Invalid phone number.",
         400,
@@ -193,14 +222,12 @@ export async function POST(request: Request) {
       console.error("Contact notification email failed", mailError);
     }
 
-    return NextResponse.json(
+    return noStoreJson(
       {
         ok: true,
         message: locale === "id" ? "Pesan berhasil dikirim." : "Your message has been sent.",
       },
-      {
-        status: 201,
-      },
+      201,
     );
   } catch (error) {
     console.error("Contact form error", error);

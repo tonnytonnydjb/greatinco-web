@@ -36,6 +36,14 @@ function escapeHtml(value: string): string {
     .replaceAll("'", "&#39;");
 }
 
+function safeSubject(value: string, maxLength = 180): string {
+  return value
+    .replace(/[\r\n\u0000-\u001f\u007f]+/g, " ")
+    .replace(/\s+/g, " ")
+    .trim()
+    .slice(0, maxLength);
+}
+
 async function getGraphAccessToken(): Promise<string> {
   const tenantId = requireEnv("M365_TENANT_ID");
 
@@ -166,7 +174,7 @@ export async function sendCareerApplicationNotification(data: CareerNotification
       },
       body: JSON.stringify({
         message: {
-          subject: `[Career Application] ${data.vacancyTitle} - ${data.applicantName}`,
+          subject: `[Career Application] ${safeSubject(data.vacancyTitle)} - ${safeSubject(data.applicantName, 120)}`,
 
           body: {
             contentType: "HTML",
@@ -189,11 +197,8 @@ export async function sendCareerApplicationNotification(data: CareerNotification
   );
 
   if (response.status !== 202) {
-    const body = await response.text();
-
     console.error("Microsoft Graph sendMail failed", {
       status: response.status,
-      body: body.slice(0, 500),
     });
 
     throw new Error("Microsoft Graph email notification failed.");

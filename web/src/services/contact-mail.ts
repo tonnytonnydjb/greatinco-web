@@ -33,6 +33,14 @@ function escapeHtml(value: string) {
     .replaceAll("'", "&#39;");
 }
 
+function safeSubject(value: string, maxLength = 180) {
+  return value
+    .replace(/[\r\n\u0000-\u001f\u007f]+/g, " ")
+    .replace(/\s+/g, " ")
+    .trim()
+    .slice(0, maxLength);
+}
+
 async function getAccessToken() {
   const tenantId = requireEnv("M365_TENANT_ID");
 
@@ -152,7 +160,7 @@ export async function sendContactNotification(data: ContactNotification) {
       },
       body: JSON.stringify({
         message: {
-          subject: `[Website Inquiry] ${data.subject} - ${data.fullName}`,
+          subject: `[Website Inquiry] ${safeSubject(data.subject)} - ${safeSubject(data.fullName, 120)}`,
 
           body: {
             contentType: "HTML",
@@ -175,11 +183,9 @@ export async function sendContactNotification(data: ContactNotification) {
   );
 
   if (response.status !== 202) {
-    const body = await response.text();
 
     console.error("Contact Graph mail failed", {
       status: response.status,
-      body: body.slice(0, 500),
     });
 
     throw new Error("Unable to send contact notification.");
