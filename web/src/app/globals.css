@@ -5879,3 +5879,252 @@ html[lang="en"] .hero-copy h1 {
     border-radius: 14px;
   }
 }
+
+/* Activity gallery lightbox */
+.activity-detail-v2-gallery-button {
+  width: 100%;
+  padding: 0;
+  border: 0;
+  cursor: zoom-in;
+  appearance: none;
+  text-align: left;
+}
+
+.activity-lightbox {
+  position: fixed;
+  inset: 0;
+  z-index: 9999;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 32px 72px;
+  background: rgba(6, 12, 20, 0.94);
+  backdrop-filter: blur(10px);
+}
+
+.activity-lightbox-content {
+  width: min(1400px, 100%);
+  max-height: calc(100vh - 64px);
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+.activity-lightbox-image {
+  position: relative;
+  width: 100%;
+  height: min(78vh, 900px);
+  overflow: hidden;
+  border-radius: 18px;
+}
+
+.activity-lightbox-image img {
+  object-fit: contain;
+}
+
+.activity-lightbox-footer {
+  display: flex;
+  justify-content: space-between;
+  gap: 24px;
+  color: rgba(255, 255, 255, 0.82);
+  font-size: 0.9rem;
+}
+
+.activity-lightbox-close,
+.activity-lightbox-nav {
+  position: absolute;
+  z-index: 2;
+  display: grid;
+  place-items: center;
+  border: 1px solid rgba(255, 255, 255, 0.18);
+  background: rgba(20, 27, 36, 0.72);
+  color: #fff;
+  cursor: pointer;
+  backdrop-filter: blur(8px);
+  transition:
+    background 160ms ease,
+    transform 160ms ease;
+}
+
+.activity-lightbox-close:hover,
+.activity-lightbox-nav:hover {
+  background: rgba(35, 45, 58, 0.92);
+}
+
+.activity-lightbox-close {
+  top: 22px;
+  right: 22px;
+  width: 44px;
+  height: 44px;
+  border-radius: 999px;
+  font-size: 1.8rem;
+  line-height: 1;
+}
+
+.activity-lightbox-nav {
+  top: 50%;
+  width: 48px;
+  height: 64px;
+  transform: translateY(-50%);
+  border-radius: 14px;
+  font-size: 2.25rem;
+  line-height: 1;
+}
+
+.activity-lightbox-prev {
+  left: 18px;
+}
+
+.activity-lightbox-next {
+  right: 18px;
+}
+
+.activity-lightbox-nav:hover {
+  transform: translateY(-50%) scale(1.04);
+}
+
+@media (max-width: 760px) {
+  .activity-lightbox {
+    padding: 72px 14px 24px;
+  }
+
+  .activity-lightbox-content {
+    max-height: calc(100vh - 96px);
+  }
+
+  .activity-lightbox-image {
+    height: 70vh;
+    border-radius: 12px;
+  }
+
+  .activity-lightbox-close {
+    top: 14px;
+    right: 14px;
+  }
+
+  .activity-lightbox-nav {
+    width: 42px;
+    height: 56px;
+    background: rgba(20, 27, 36, 0.58);
+  }
+
+  .activity-lightbox-prev {
+    left: 8px;
+  }
+
+  .activity-lightbox-next {
+    right: 8px;
+  }
+
+  .activity-lightbox-footer {
+    padding: 0 4px;
+    font-size: 0.82rem;
+  }
+}
+
+/* Activity cover gallery entry */
+.activity-detail-v2-cover-button {
+  display: block;
+  width: 100%;
+  padding: 0;
+  border: 0;
+  appearance: none;
+  background: transparent;
+  cursor: zoom-in;
+  text-align: left;
+}
+
+.activity-detail-v2-image {
+  position: relative;
+}
+
+.activity-detail-v2-view-all {
+  position: absolute;
+  right: 20px;
+  bottom: 20px;
+  z-index: 2;
+  display: inline-flex;
+  align-items: center;
+  gap: 9px;
+  padding: 11px 15px;
+  border: 1px solid rgba(255, 255, 255, 0.42);
+  border-radius: 999px;
+  background: rgba(11, 20, 29, 0.72);
+  color: #fff;
+  font-size: 0.86rem;
+  font-weight: 600;
+  line-height: 1;
+  backdrop-filter: blur(10px);
+  box-shadow: 0 6px 24px rgba(0, 0, 0, 0.18);
+  transition:
+    transform 160ms ease,
+    background 160ms ease;
+}
+
+.activity-detail-v2-cover-button:hover .activity-detail-v2-view-all {
+  transform: translateY(-2px);
+  background: rgba(11, 20, 29, 0.88);
+}
+
+.activity-detail-v2-gallery-all {
+  padding: 9px 14px;
+  border: 1px solid rgba(12, 28, 42, 0.16);
+  border-radius: 999px;
+  background: transparent;
+  color: inherit;
+  cursor: pointer;
+  font: inherit;
+  font-size: 0.88rem;
+  font-weight: 600;
+  transition:
+    background 160ms ease,
+    border-color 160ms ease;
+}
+
+.activity-detail-v2-gallery-all:hover {
+  background: rgba(12, 28, 42, 0.05);
+  border-color: rgba(12, 28, 42, 0.28);
+}
+
+.activity-detail-v2-gallery-button {
+  position: relative;
+  width: 100%;
+  padding: 0;
+  border: 0;
+  appearance: none;
+  background: #eef1f4;
+  cursor: zoom-in;
+  text-align: left;
+}
+
+.activity-detail-v2-gallery-number {
+  position: absolute;
+  right: 12px;
+  bottom: 12px;
+  z-index: 2;
+  display: grid;
+  place-items: center;
+  min-width: 30px;
+  height: 30px;
+  padding: 0 8px;
+  border-radius: 999px;
+  background: rgba(8, 16, 24, 0.68);
+  color: #fff;
+  font-size: 0.78rem;
+  font-weight: 600;
+  backdrop-filter: blur(8px);
+}
+
+@media (max-width: 760px) {
+  .activity-detail-v2-view-all {
+    right: 12px;
+    bottom: 12px;
+    padding: 10px 13px;
+    font-size: 0.8rem;
+  }
+
+  .activity-detail-v2-gallery-head {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+}

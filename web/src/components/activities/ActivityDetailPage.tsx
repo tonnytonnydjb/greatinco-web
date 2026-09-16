@@ -1,5 +1,9 @@
+"use client";
+
 import Image from "next/image";
 import Link from "next/link";
+
+import { ActivityLightbox } from "@/components/activities/ActivityLightbox";
 import type { ActivityContent, SiteLocale } from "@/types/cms";
 
 type Props = {
@@ -42,6 +46,8 @@ function formatDate(locale: SiteLocale, value: string) {
 }
 
 export function ActivityDetailPage({ locale, activity }: Props) {
+  const allImages = [activity.image, ...activity.gallery];
+
   return (
     <main className="activity-detail-v2">
       <section className="activity-detail-v2-head">
@@ -71,58 +77,105 @@ export function ActivityDetailPage({ locale, activity }: Props) {
         </div>
       </section>
 
-      <section className="activity-detail-v2-media">
-        <div className="gi-container">
-          <div className="activity-detail-v2-image">
-            <Image
-              src={activity.image.src}
-              alt={activity.image.alt}
-              fill
-              priority
-              sizes="(max-width: 1200px) 100vw, 1200px"
-            />
-          </div>
-        </div>
-      </section>
-
-      {activity.gallery.length > 0 && (
-        <section className="activity-detail-v2-gallery-section">
-          <div className="gi-container">
-            <div className="activity-detail-v2-gallery-head">
-              <div>
-                <div className="gi-eyebrow">
-                  {locale === "id" ? "Dokumentasi" : "Documentation"}
-                </div>
-
-                <h2>
-                  {locale === "id" ? "Galeri Aktivitas" : "Activity Gallery"}
-                </h2>
-              </div>
-
-              <span>
-                {activity.gallery.length}{" "}
-                {locale === "id" ? "foto" : "photos"}
-              </span>
-            </div>
-
-            <div className="activity-detail-v2-gallery-grid">
-              {activity.gallery.map((image, index) => (
-                <div
-                  className="activity-detail-v2-gallery-image"
-                  key={`${image.src}-${index}`}
+      <ActivityLightbox
+        images={allImages}
+        trigger={(open) => (
+          <>
+            <section className="activity-detail-v2-media">
+              <div className="gi-container">
+                <button
+                  type="button"
+                  className="activity-detail-v2-cover-button"
+                  onClick={() => open(0)}
+                  aria-label={
+                    locale === "id"
+                      ? `Buka galeri ${activity.title}`
+                      : `Open ${activity.title} gallery`
+                  }
                 >
-                  <Image
-                    src={image.src}
-                    alt={image.alt}
-                    fill
-                    sizes="(max-width: 760px) 100vw, (max-width: 1100px) 50vw, 33vw"
-                  />
+                  <div className="activity-detail-v2-image">
+                    <Image
+                      src={activity.image.src}
+                      alt={activity.image.alt}
+                      fill
+                      priority
+                      sizes="(max-width: 1200px) 100vw, 1200px"
+                    />
+
+                    {allImages.length > 1 && (
+                      <span className="activity-detail-v2-view-all">
+                        <span aria-hidden="true">▦</span>
+                        {locale === "id"
+                          ? `Lihat semua ${allImages.length} foto`
+                          : `View all ${allImages.length} photos`}
+                      </span>
+                    )}
+                  </div>
+                </button>
+              </div>
+            </section>
+
+            {activity.gallery.length > 0 && (
+              <section className="activity-detail-v2-gallery-section">
+                <div className="gi-container">
+                  <div className="activity-detail-v2-gallery-head">
+                    <div>
+                      <div className="gi-eyebrow">
+                        {locale === "id"
+                          ? "Dokumentasi"
+                          : "Documentation"}
+                      </div>
+
+                      <h2>
+                        {locale === "id"
+                          ? "Galeri Aktivitas"
+                          : "Activity Gallery"}
+                      </h2>
+                    </div>
+
+                    <button
+                      type="button"
+                      className="activity-detail-v2-gallery-all"
+                      onClick={() => open(0)}
+                    >
+                      {locale === "id"
+                        ? `Lihat semua ${allImages.length} foto`
+                        : `View all ${allImages.length} photos`}
+                    </button>
+                  </div>
+
+                  <div className="activity-detail-v2-gallery-grid">
+                    {activity.gallery.map((image, index) => (
+                      <button
+                        type="button"
+                        className="activity-detail-v2-gallery-image activity-detail-v2-gallery-button"
+                        key={`${image.src}-${index}`}
+                        onClick={() => open(index + 1)}
+                        aria-label={
+                          locale === "id"
+                            ? `Buka foto ${index + 2} dari ${allImages.length}`
+                            : `Open photo ${index + 2} of ${allImages.length}`
+                        }
+                      >
+                        <Image
+                          src={image.src}
+                          alt={image.alt}
+                          fill
+                          sizes="(max-width: 760px) 100vw, (max-width: 1100px) 50vw, 33vw"
+                        />
+
+                        <span className="activity-detail-v2-gallery-number">
+                          {index + 2}
+                        </span>
+                      </button>
+                    ))}
+                  </div>
                 </div>
-              ))}
-            </div>
-          </div>
-        </section>
-      )}
+              </section>
+            )}
+          </>
+        )}
+      />
     </main>
   );
 }
