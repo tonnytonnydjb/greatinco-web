@@ -91,7 +91,7 @@ export function ActivitiesIndex({ locale, activities }: Props) {
             <p className="activities-v2-empty">{copy.empty}</p>
           ) : (
             <div className="activities-v2-grid">
-              {activities.map((activity) => (
+              {activities.map((activity, index) => (
                 <Link
                   href={activity.href}
                   className="activities-v2-card"
@@ -102,6 +102,7 @@ export function ActivitiesIndex({ locale, activities }: Props) {
                       src={activity.image.src}
                       alt={activity.image.alt}
                       fill
+                      priority={index === 0}
                       sizes="(max-width: 760px) 100vw, (max-width: 1100px) 50vw, 33vw"
                     />
                   </div>

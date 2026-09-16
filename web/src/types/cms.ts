@@ -59,6 +59,7 @@ export type ActivityContent = {
   activityDate: string;
   href: string;
   image: CmsImage;
+  gallery: CmsImage[];
 };
 
 export type NavigationItem = {

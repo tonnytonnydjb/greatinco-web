@@ -330,6 +330,7 @@ function mapActivity(locale: SiteLocale, activity: DirectusActivity): ActivityCo
       src: directusAssetUrl(activity.cover_image) ?? "/brand/greatinco-logogram.png",
       alt: translation.title,
     },
+    gallery: [],
   };
 }
 
