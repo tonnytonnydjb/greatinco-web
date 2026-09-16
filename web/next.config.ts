@@ -48,7 +48,7 @@ const securityHeaders = [
     value: "max-age=31536000",
   },
   {
-    key: "Content-Security-Policy-Report-Only",
+    key: "Content-Security-Policy",
     value: contentSecurityPolicy,
   },
 ];
