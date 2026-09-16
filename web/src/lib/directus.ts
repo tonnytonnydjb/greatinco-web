@@ -49,15 +49,24 @@ export async function directusFetch<T>(
 
   for (let attempt = 0; attempt <= RETRY_DELAYS_MS.length; attempt += 1) {
     try {
+      const retrying = attempt > 0;
+
       response = await directusRequest(path, getDirectusToken(), {
         ...options,
         headers: {
           Accept: "application/json",
           ...options?.headers,
         },
-        next: {
-          revalidate: 60,
-        },
+
+        ...(retrying
+          ? {
+              cache: "no-store",
+            }
+          : {
+              next: {
+                revalidate: 60,
+              },
+            }),
       });
 
       if (response.ok) {
@@ -112,7 +121,9 @@ export async function directusFetch<T>(
     );
   }
 
-  throw new Error(`Directus request failed before receiving a response: ${path}`);
+  throw new Error(
+    `Directus request failed before receiving a response: ${path}`,
+  );
 }
 
 export function directusAssetUrl(
